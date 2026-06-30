@@ -661,16 +661,16 @@ export default function App() {
                       ? 'bg-[#0c1628]/35 border-green-950/20 opacity-80' 
                       : isDiscarded
                       ? droid.achieved > 0
-                        ? 'bg-[#1b1416] border-red-900/40'
-                        : 'bg-slate-950/40 border-slate-900'
+                        ? 'bg-[#1c1214] border-red-900/40'
+                        : 'bg-[#120e10] border-red-950/20'
                       : 'bg-[#0c1628]/80 border-institutional-border/80 hover:border-slate-700'
                   }`}
                 >
                   {/* Fila 1: Nombre y Rarity */}
                   <div className="flex justify-between items-center gap-1.5 mb-2">
-                    <h4 className={`text-xs sm:text-sm truncate flex-1 leading-tight ${
+                    <h4 className={`text-sm sm:text-base truncate flex-1 leading-tight ${
                       isDiscarded 
-                        ? 'line-through text-slate-400 font-semibold' 
+                        ? 'line-through text-red-400/85 font-bold' 
                         : isImmediate 
                         ? 'text-institutional-secondary font-extrabold' 
                         : 'text-white font-bold'
@@ -704,7 +704,8 @@ export default function App() {
                       rec.type === 'keep_upgrade' ? 'text-cyan-400' :
                       rec.type === 'sell' ? 'text-red-400 font-bold' :
                       rec.type === 'keep' ? 'text-green-400 font-bold' :
-                      'text-slate-400 font-medium'
+                      rec.type === 'none' ? 'text-red-500/70 font-bold' :
+                      'text-slate-450 font-medium'
                     }`}>
                       {rec.text}
                     </span>
