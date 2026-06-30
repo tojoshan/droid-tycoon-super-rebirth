@@ -658,11 +658,11 @@ export default function App() {
                     isImmediate
                       ? 'bg-gradient-to-b from-[#112544] to-[#0c1628] border-2 border-institutional-secondary ring-1 ring-institutional-secondary/20 shadow-[0_0_12px_rgba(0,173,238,0.25)]'
                       : isCompleted 
-                      ? 'bg-[#0c1628]/35 border-green-950/20 opacity-75' 
+                      ? 'bg-[#0c1628]/35 border-green-950/20 opacity-80' 
                       : isDiscarded
                       ? droid.achieved > 0
-                        ? 'bg-slate-900/10 border-red-950/20 opacity-60'
-                        : 'bg-slate-900/10 border-slate-950/80 opacity-40'
+                        ? 'bg-[#1b1416] border-red-900/40'
+                        : 'bg-slate-950/40 border-slate-900'
                       : 'bg-[#0c1628]/80 border-institutional-border/80 hover:border-slate-700'
                   }`}
                 >
@@ -670,7 +670,7 @@ export default function App() {
                   <div className="flex justify-between items-center gap-1.5 mb-2">
                     <h4 className={`text-xs sm:text-sm truncate flex-1 leading-tight ${
                       isDiscarded 
-                        ? 'line-through text-slate-500 font-normal' 
+                        ? 'line-through text-slate-400 font-semibold' 
                         : isImmediate 
                         ? 'text-institutional-secondary font-extrabold' 
                         : 'text-white font-bold'
@@ -704,7 +704,7 @@ export default function App() {
                       rec.type === 'keep_upgrade' ? 'text-cyan-400' :
                       rec.type === 'sell' ? 'text-red-400 font-bold' :
                       rec.type === 'keep' ? 'text-green-400 font-bold' :
-                      'text-slate-500 font-normal'
+                      'text-slate-400 font-medium'
                     }`}>
                       {rec.text}
                     </span>
