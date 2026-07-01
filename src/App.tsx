@@ -325,14 +325,27 @@ const getTierColor = (tier: number) => {
   }
 };
 
+const getNovaCrystals = (level: number): number => {
+  if (level < 12) return 0;
+  let crystals = 11;
+  let increment = 5;
+  for (let i = 13; i <= level; i++) {
+    crystals += increment;
+    increment += 1;
+  }
+  return crystals;
+};
+
 export default function App() {
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [currentRebirth, setCurrentRebirth] = useState<number>(0); // 0 to 23
   const [showResetModal, setShowResetModal] = useState(false);
+  const [showSuperRebirthModal, setShowSuperRebirthModal] = useState(false);
+  const [novaCrystals, setNovaCrystals] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showFullGuide, setShowFullGuide] = useState<boolean>(false);
 
-  // Load progress and current rebirth from localStorage
+  // Load progress, current rebirth and nova crystals from localStorage
   useEffect(() => {
     const savedProgress = localStorage.getItem('droid_tycoon_tracker_v1');
     if (savedProgress) {
@@ -344,6 +357,10 @@ export default function App() {
       if (parsedRebirth >= 0 && parsedRebirth <= 23) {
         setCurrentRebirth(parsedRebirth);
       }
+    }
+    const savedNova = localStorage.getItem('droid_tycoon_nova_crystals');
+    if (savedNova) {
+      setNovaCrystals(parseInt(savedNova, 10) || 0);
     }
     setIsLoaded(true);
   }, []);
@@ -358,6 +375,11 @@ export default function App() {
     localStorage.setItem('droid_tycoon_current_rebirth', rebirthLevel.toString());
   };
 
+  const saveNovaCrystals = (amount: number) => {
+    setNovaCrystals(amount);
+    localStorage.setItem('droid_tycoon_nova_crystals', amount.toString());
+  };
+
   const handleTierClick = (droidName: string, clickedLevel: number) => {
     const currentLevel = progress[droidName] || 0;
     const newLevel = currentLevel === clickedLevel ? clickedLevel - 1 : clickedLevel;
@@ -368,6 +390,14 @@ export default function App() {
     saveProgress({});
     saveRebirth(0);
     setShowResetModal(false);
+  };
+
+  const handleSuperRebirth = () => {
+    const earned = getNovaCrystals(currentRebirth);
+    saveNovaCrystals(novaCrystals + earned);
+    saveProgress({});
+    saveRebirth(0);
+    setShowSuperRebirthModal(false);
   };
 
   const getRequiredTier = (droidName: string): number => {
@@ -526,20 +556,46 @@ export default function App() {
         {/* Cabecera y Controles Principales */}
         <header className="bg-gradient-to-br from-[#0c1628] to-[#0a101d] border border-institutional-border p-3.5 rounded-xl shadow-lg flex flex-col gap-3">
           
-          {/* Fila 1: Título y Reset */}
-          <div className="flex justify-between items-center">
-            <h1 className="text-base font-bold text-white font-narrow flex items-center gap-1.5">
+          {/* Fila 1: Título y Controles */}
+          <div className="flex justify-between items-center gap-2">
+            <h1 className="text-base font-bold text-white font-narrow flex items-center gap-1.5 flex-wrap">
               <span>Droid Tracker</span>
               <span className="bg-institutional-primary/30 text-institutional-secondary border border-institutional-primary/50 px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">
-                Ciclo 3 (1-23)
+                Ciclo 3
               </span>
+              {novaCrystals > 0 && (
+                <span className="flex items-center gap-0.5 text-[10px] text-purple-300 font-bold bg-purple-950/40 border border-purple-500/30 px-2 py-0.5 rounded-lg shadow-inner">
+                  💎 {novaCrystals} Nova
+                </span>
+              )}
             </h1>
-            <button 
-              onClick={() => setShowResetModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg border border-red-500/25 transition-colors cursor-pointer font-bold"
-            >
-              <RotateCcw size={12} /> <span>Reiniciar Progreso</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              {/* Botón Super Rebirth */}
+              {currentRebirth >= 12 ? (
+                <button
+                  onClick={() => setShowSuperRebirthModal(true)}
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs bg-purple-700 hover:bg-purple-600 text-white rounded-lg border border-purple-500/30 shadow-[0_0_8px_rgba(147,51,234,0.3)] transition-all cursor-pointer font-bold"
+                >
+                  <Sparkles size={12} /> <span>Super Rebirth (+{getNovaCrystals(currentRebirth)})</span>
+                </button>
+              ) : (
+                <button
+                  disabled
+                  className="flex items-center gap-1 px-2.5 py-1 text-xs bg-purple-950/20 border border-purple-900/40 text-purple-400/40 rounded-lg cursor-not-allowed font-bold"
+                  title="Requiere al menos Rebirth 12"
+                >
+                  <Lock size={12} /> <span>Super Rebirth (R-12)</span>
+                </button>
+              )}
+
+              {/* Botón Reiniciar */}
+              <button 
+                onClick={() => setShowResetModal(true)}
+                className="flex items-center gap-1 px-2.5 py-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg border border-red-500/25 transition-colors cursor-pointer font-bold"
+              >
+                <RotateCcw size={12} /> <span>Reiniciar</span>
+              </button>
+            </div>
           </div>
 
           {/* Fila 2: Selector Rebirth Horizontal Deslizable */}
@@ -782,6 +838,46 @@ export default function App() {
                 className="px-3 py-1.5 rounded bg-red-650 hover:bg-red-600 text-white transition-all font-bold shadow-md cursor-pointer"
               >
                 Sí, reiniciar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Super Rebirth */}
+      {showSuperRebirthModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-[#120e24] border border-purple-900/40 p-5 rounded-xl max-w-xs w-full shadow-[0_0_20px_rgba(147,51,234,0.3)] relative font-sans text-xs">
+            <h3 className="text-sm font-bold mb-1 text-white font-narrow flex items-center gap-1.5 text-purple-400">
+              <Sparkles size={14} /> ¿Realizar Super Rebirth?
+            </h3>
+            <p className="text-[#94a3b8] mb-3">
+              Estás en Rebirth <strong className="text-white">R-{currentRebirth}</strong>. Al volver a comenzar obtendrás:
+            </p>
+            
+            <div className="bg-purple-950/40 border border-purple-800/40 p-2.5 rounded-lg text-center mb-4 shadow-inner">
+              <div className="text-[10px] uppercase font-bold text-purple-300 tracking-wider mb-0.5">Recompensa</div>
+              <div className="text-base font-black text-purple-100 flex items-center justify-center gap-1">
+                <span>💎 {getNovaCrystals(currentRebirth)} Cristales Nova</span>
+              </div>
+            </div>
+
+            <p className="text-red-400/80 mb-4 leading-relaxed text-[11px]">
+              ⚠️ Esto restablecerá tu Rebirth al nivel 0 y borrará todos tus droides del tracker.
+            </p>
+
+            <div className="flex justify-end gap-2">
+              <button 
+                onClick={() => setShowSuperRebirthModal(false)} 
+                className="px-3 py-1.5 rounded bg-slate-900 hover:bg-slate-800 text-[#94a3b8] hover:text-white transition-all font-bold cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSuperRebirth} 
+                className="px-3 py-1.5 rounded bg-purple-700 hover:bg-purple-650 text-white transition-all font-bold shadow-md cursor-pointer"
+              >
+                Confirmar Super Rebirth
               </button>
             </div>
           </div>
