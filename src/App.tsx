@@ -517,6 +517,7 @@ export default function App() {
 
   const nextLevel = currentRebirth + 1;
   const nextReq = rebirthRequirements.find(r => r.level === nextLevel);
+  const isNextReqMet = nextReq ? getRebirthStatus(nextReq) === 'ready' : false;
 
   return (
     <div className="min-h-screen bg-[#050810] text-[#e2e8f0] font-sans antialiased p-3 pb-8 space-y-4">
@@ -619,13 +620,15 @@ export default function App() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => saveRebirth(nextLevel)}
-                  className="bg-green-600 hover:bg-green-500 text-white rounded-lg px-4 py-2 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto shrink-0 shadow-md"
-                >
-                  <span>¡Rebirth Listo!</span>
-                  <ArrowRight size={12} />
-                </button>
+                {isNextReqMet && (
+                  <button
+                    onClick={() => saveRebirth(nextLevel)}
+                    className="bg-green-600 hover:bg-green-500 text-white rounded-lg px-4 py-2 text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer w-full sm:w-auto shrink-0 shadow-md"
+                  >
+                    <span>¡Rebirth Listo!</span>
+                    <ArrowRight size={12} />
+                  </button>
+                )}
               </>
             ) : (
               <span className="text-green-400 font-bold flex items-center gap-2 py-1 text-sm">
@@ -752,82 +755,9 @@ export default function App() {
           </div>
         </main>
 
-        {/* Guía Histórica de Requisitos en el Footer */}
-        <footer className="bg-[#0c1628]/40 border border-institutional-border p-3 rounded-xl flex flex-col gap-2 text-xs">
-          <div className="flex justify-between items-center">
-            <button
-              onClick={() => setShowFullGuide(!showFullGuide)}
-              className="text-institutional-secondary hover:text-white flex items-center gap-1 transition-colors font-bold cursor-pointer"
-            >
-              {showFullGuide ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              {showFullGuide ? "Ocultar Guía Completa de Rebirths" : "Ver Guía Completa de Requisitos (1-23)"}
-            </button>
-            <div className="text-[10px] text-[#94a3b8] hidden sm:block">
-              Los droides se ordenan por urgencia: Prioritarios → Futuros → Completados → Vender.
-            </div>
-          </div>
-
-          {showFullGuide && (
-            <div className="bg-[#050810]/50 p-2 rounded-lg border border-institutional-border/60 max-h-36 overflow-y-auto">
-              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-                {rebirthRequirements.map(req => {
-                  const status = getRebirthStatus(req);
-                  const isNext = req.level === nextLevel;
-                  
-                  let cardStyle = "p-2 rounded-lg border transition-all duration-100 flex-shrink-0 w-48 ";
-                  let badge = null;
-
-                  if (status === 'completed') {
-                    cardStyle += "bg-slate-900/10 border-slate-900 opacity-40";
-                    badge = <span className="text-[8px] text-slate-500 font-bold uppercase">Superado</span>;
-                  } else if (isNext) {
-                    cardStyle += "bg-[#0c1628] border-institutional-secondary ring-1 ring-institutional-secondary/20";
-                    badge = <span className="px-1.5 py-0.2 text-[8px] font-bold text-white bg-institutional-primary border border-institutional-secondary/60 rounded uppercase animate-pulse">META</span>;
-                  } else if (status === 'ready') {
-                    cardStyle += "bg-[#0c1628]/40 border-green-500/20";
-                    badge = <span className="px-1.5 py-0.2 text-[8px] font-bold text-green-400 bg-green-500/10 border border-green-500/20 rounded uppercase">Listo</span>;
-                  } else {
-                    cardStyle += "bg-[#0c1628]/20 border-slate-800/80";
-                  }
-
-                  return (
-                    <div key={req.level} className={cardStyle}>
-                      <div className="flex justify-between items-center gap-1 mb-0.5">
-                        <span className={`font-bold font-narrow text-xs ${status === 'completed' ? 'text-slate-500' : 'text-white'}`}>
-                          Rebirth {req.level}
-                        </span>
-                        {badge}
-                      </div>
-                      
-                      <div className="text-[10px] text-slate-400 mb-1 flex items-center gap-0.5">
-                        <Coins size={10} className="text-yellow-500" />
-                        {req.credits.replace(' Credits', '').replace(' Million', 'M').replace(' Billion', 'B').replace(' Trillion', 'T')}
-                      </div>
-
-                      {/* Droids requeridos */}
-                      <div className="space-y-0.5 mt-1 border-t border-institutional-border/20 pt-1 text-[10px]">
-                        {req.droids.map((reqDroid, index) => {
-                          const achieved = progress[reqDroid.name] || 0;
-                          const isMet = achieved >= reqDroid.tier;
-
-                          return (
-                            <div key={index} className="flex justify-between items-center">
-                              <span className={`${status === 'completed' ? 'text-slate-655' : 'text-slate-300'}`}>
-                                {reqDroid.name}
-                              </span>
-                              <span className={`font-bold ${isMet ? 'text-green-500' : 'text-slate-400'}`}>
-                                {tiersConfig[reqDroid.tier - 1]?.short}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+        {/* Footer simple de la aplicación */}
+        <footer className="text-center py-2 text-[10px] text-slate-600 shrink-0">
+          Los droides se ordenan por urgencia: Prioritarios → Futuros → Completados → Vender.
         </footer>
 
       </div>
