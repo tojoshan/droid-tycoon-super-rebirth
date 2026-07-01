@@ -468,6 +468,9 @@ export default function App() {
     return a.name.localeCompare(b.name);
   });
 
+  const requiredDroids = sortedDroids.filter(d => d.status !== 'discarded');
+  const discardedDroids = sortedDroids.filter(d => d.status === 'discarded');
+
   if (!isLoaded) return null;
 
   const nextLevel = currentRebirth + 1;
@@ -625,154 +628,158 @@ export default function App() {
         </header>
 
         {/* Grilla Principal de Droides: 2 columnas en mobile, hasta 5 en pantallas grandes */}
-        <main className="space-y-3">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
-            {sortedDroids.map(droid => {
-              const isCompleted = droid.status === 'completed';
-              const isImmediate = droid.status === 'immediate';
-              const isDiscarded = droid.status === 'discarded';
+        <main className="space-y-4">
+          
+          {/* Sección 1: Requisitos de Rebirth */}
+          <div className="space-y-2">
+            <h3 className="text-[10px] sm:text-xs uppercase font-extrabold text-[#64748b] tracking-wider px-1">
+              Requisitos de Rebirth
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+              {requiredDroids.map(droid => {
+                const isCompleted = droid.status === 'completed';
+                const isImmediate = droid.status === 'immediate';
 
-              const typeInfo = droidTypes[droid.type] || droidTypes.ASTRO;
-              const rarityInfo = droidRarities[droid.rarity] || droidRarities.COMUN;
-              const TypeIcon = typeInfo.icon;
+                const typeInfo = droidTypes[droid.type] || droidTypes.ASTRO;
+                const rarityInfo = droidRarities[droid.rarity] || droidRarities.COMUN;
+                const TypeIcon = typeInfo.icon;
 
-              const reqList = getDroidRequirements(droid.name);
-              const rec = getDroidRecommendation(droid.name, droid.achieved, droid.required);
+                const reqList = getDroidRequirements(droid.name);
+                const rec = getDroidRecommendation(droid.name, droid.achieved, droid.required);
 
-              if (isDiscarded) {
                 return (
                   <div 
                     key={droid.name} 
-                    className={`p-2.5 rounded-lg border flex items-center justify-between transition-all duration-150 ${
-                      droid.achieved > 0
-                        ? 'bg-[#1c1214]/60 border-red-900/30'
-                        : 'bg-[#120e10]/40 border-red-950/10'
+                    className={`p-3 rounded-lg border flex flex-col justify-between transition-all duration-150 ${
+                      isImmediate
+                        ? 'bg-gradient-to-b from-[#112544] to-[#0c1628] border-2 border-institutional-secondary ring-1 ring-institutional-secondary/20 shadow-[0_0_12px_rgba(0,173,238,0.25)]'
+                        : isCompleted 
+                        ? 'bg-[#0c1628]/35 border-green-950/20 opacity-80' 
+                        : 'bg-[#0c1628]/80 border-institutional-border/80 hover:border-slate-700'
                     }`}
                   >
-                    <h4 className="text-xs sm:text-sm line-through text-red-500/40 font-bold truncate flex-1 pr-2" title={droid.name}>
-                      {droid.name}
-                    </h4>
-                    {droid.achieved > 0 ? (
-                      <button
-                        onClick={() => handleClearDroid(droid.name)}
-                        className="px-2 py-0.5 bg-red-950/30 hover:bg-red-900/20 border border-red-500/20 text-red-400 text-[8px] font-bold rounded cursor-pointer transition-colors flex-shrink-0"
-                        title="Haz clic para marcar como vendido (borrar de tu fábrica)"
-                      >
-                        Vender ({tiersConfig[droid.achieved - 1]?.short})
-                      </button>
-                    ) : (
-                      <span className="text-[8px] font-bold text-red-500/20 uppercase flex-shrink-0 select-none">
-                        Vendido
-                      </span>
-                    )}
-                  </div>
-                );
-              }
+                    {/* Fila 1: Nombre y Rarity */}
+                    <div className="flex justify-between items-center gap-1.5 mb-2">
+                      <h4 className={`text-sm sm:text-base truncate flex-1 leading-tight ${
+                        isImmediate 
+                          ? 'text-institutional-secondary font-extrabold' 
+                          : 'text-white font-bold'
+                      }`} title={droid.name}>
+                        {droid.name}
+                      </h4>
+                      <div className="flex gap-1 flex-shrink-0 items-center">
+                        {isImmediate && (
+                          <span className="px-1.5 py-0.5 bg-institutional-secondary text-[#050810] text-[8px] font-extrabold rounded leading-none" title={`Requerido para R-${nextLevel}`}>
+                            R-{nextLevel}
+                          </span>
+                        )}
+                        <span className={`text-[8px] font-extrabold uppercase px-1 py-0.2 rounded border border-current leading-none ${rarityInfo.color}`} title={rarityInfo.label}>
+                          {rarityInfo.label[0]}
+                        </span>
+                        <span className={`text-[8px] font-semibold flex items-center px-1 py-0.2 rounded leading-none ${typeInfo.color} ${typeInfo.bg}`} title={typeInfo.label}>
+                          <TypeIcon size={8} />
+                        </span>
+                      </div>
+                    </div>
 
-              return (
-                <div 
-                  key={droid.name} 
-                  className={`p-3 rounded-lg border flex flex-col justify-between transition-all duration-150 ${
-                    isImmediate
-                      ? 'bg-gradient-to-b from-[#112544] to-[#0c1628] border-2 border-institutional-secondary ring-1 ring-institutional-secondary/20 shadow-[0_0_12px_rgba(0,173,238,0.25)]'
-                      : isCompleted 
-                      ? 'bg-[#0c1628]/35 border-green-950/20 opacity-80' 
-                      : isDiscarded
-                      ? droid.achieved > 0
-                        ? 'bg-[#1c1214] border-red-900/40'
-                        : 'bg-[#120e10] border-red-950/20'
-                      : 'bg-[#0c1628]/80 border-institutional-border/80 hover:border-slate-700'
-                  }`}
-                >
-                  {/* Fila 1: Nombre y Rarity */}
-                  <div className="flex justify-between items-center gap-1.5 mb-2">
-                    <h4 className={`text-sm sm:text-base truncate flex-1 leading-tight ${
-                      isDiscarded 
-                        ? 'line-through text-red-400/85 font-bold' 
-                        : isImmediate 
-                        ? 'text-institutional-secondary font-extrabold' 
-                        : 'text-white font-bold'
-                    }`} title={droid.name}>
-                      {droid.name}
-                    </h4>
-                    <div className="flex gap-1 flex-shrink-0 items-center">
-                      {isImmediate && (
-                        <span className="px-1.5 py-0.5 bg-institutional-secondary text-[#050810] text-[8px] font-extrabold rounded leading-none" title={`Requerido para R-${nextLevel}`}>
-                          R-{nextLevel}
-                        </span>
-                      )}
-                      {isDiscarded && droid.achieved > 0 && (
-                        <span className="px-1.5 py-0.5 bg-red-600/20 border border-red-500/30 text-red-400 text-[8px] font-extrabold rounded leading-none" title="¡Este droide ya no es necesario, puedes venderlo!">
-                          VENDER
-                        </span>
-                      )}
-                      <span className={`text-[8px] font-extrabold uppercase px-1 py-0.2 rounded border border-current leading-none ${rarityInfo.color}`} title={rarityInfo.label}>
-                        {rarityInfo.label[0]}
+                    {/* Fila 2: Requisitos y Meta (Descriptivo) */}
+                    <div className="bg-[#050810]/50 px-2 py-1 rounded text-[10px] flex justify-between items-center mb-2.5 border border-institutional-border/30" title={rec.text}>
+                      <span className={`truncate text-[9px] font-bold ${
+                        rec.type === 'upgrade' ? 'text-yellow-400' :
+                        rec.type === 'keep_upgrade' ? 'text-cyan-400' :
+                        rec.type === 'keep' ? 'text-green-400 font-bold' :
+                        'text-slate-450 font-medium'
+                      }`}>
+                        {rec.text}
                       </span>
-                      <span className={`text-[8px] font-semibold flex items-center px-1 py-0.2 rounded leading-none ${typeInfo.color} ${typeInfo.bg}`} title={typeInfo.label}>
-                        <TypeIcon size={8} />
+                      <span className="text-slate-500 text-[8px] font-mono truncate ml-1 flex-shrink-0" title="Rebirths que lo necesitan">
+                        {reqList.filter(r => r.level > currentRebirth).map(r => `R${r.level}`).join(', ')}
                       </span>
                     </div>
-                  </div>
 
-                  {/* Fila 2: Requisitos y Meta (Descriptivo) */}
-                  <div className="bg-[#050810]/50 px-2 py-1 rounded text-[10px] flex justify-between items-center mb-2.5 border border-institutional-border/30" title={rec.text}>
-                    <span className={`truncate text-[9px] font-bold ${
-                      rec.type === 'upgrade' ? 'text-yellow-400' :
-                      rec.type === 'keep_upgrade' ? 'text-cyan-400' :
-                      rec.type === 'sell' ? 'text-red-400 font-bold' :
-                      rec.type === 'keep' ? 'text-green-400 font-bold' :
-                      rec.type === 'none' ? 'text-red-500/70 font-bold' :
-                      'text-slate-450 font-medium'
-                    }`}>
-                      {rec.text}
-                    </span>
-                    <span className="text-slate-500 text-[8px] font-mono truncate ml-1 flex-shrink-0" title="Rebirths que lo necesitan">
-                      {reqList.filter(r => r.level > currentRebirth).map(r => `R${r.level}`).join(', ')}
-                    </span>
-                  </div>
+                    {/* Fila 3: Selector de los 5 Niveles (Cómodo para dedos) */}
+                    <div className="flex w-full h-8 shadow-sm">
+                      {tiersConfig.map(tier => {
+                        const isActive = tier.level <= droid.achieved;
+                        let baseClasses = "flex-1 flex items-center justify-center text-[10px] font-bold border-y border-r last:border-r-0 first:border-l first:rounded-l-lg last:rounded-r-lg transition-all duration-100 select-none ";
 
-                  {/* Fila 3: Selector de los 5 Niveles (Cómodo para dedos) */}
-                  <div className="flex w-full h-8 shadow-sm">
-                    {tiersConfig.map(tier => {
-                      const isActive = tier.level <= droid.achieved;
-                      let baseClasses = "flex-1 flex items-center justify-center text-[10px] font-bold border-y border-r last:border-r-0 first:border-l first:rounded-l-lg last:rounded-r-lg transition-all duration-100 select-none ";
-
-                      if (!isActive) {
-                        baseClasses += "bg-slate-950 border-slate-900/60 text-slate-655 hover:bg-slate-900 cursor-pointer";
-                      } else {
-                        baseClasses += "cursor-pointer border-transparent z-10 ";
-                        switch(tier.level) {
-                          case 1: baseClasses += "bg-slate-400 text-slate-950"; break;
-                          case 2: baseClasses += "bg-yellow-505 bg-yellow-500 text-slate-950"; break;
-                          case 3: baseClasses += "bg-cyan-500 text-slate-950 font-extrabold"; break;
-                          case 4: baseClasses += "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-extrabold"; break;
-                          case 5: baseClasses += "bg-purple-900 border-t-purple-400 text-purple-100 shadow-inner"; break;
+                        if (!isActive) {
+                          baseClasses += "bg-slate-950 border-slate-900/60 text-slate-655 hover:bg-slate-900 cursor-pointer";
+                        } else {
+                          baseClasses += "cursor-pointer border-transparent z-10 ";
+                          switch(tier.level) {
+                            case 1: baseClasses += "bg-slate-400 text-slate-950"; break;
+                            case 2: baseClasses += "bg-yellow-505 bg-yellow-500 text-slate-950"; break;
+                            case 3: baseClasses += "bg-cyan-500 text-slate-950 font-extrabold"; break;
+                            case 4: baseClasses += "bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-extrabold"; break;
+                            case 5: baseClasses += "bg-purple-900 border-t-purple-400 text-purple-100 shadow-inner"; break;
+                          }
                         }
-                      }
 
-                      return (
-                        <button
-                          key={tier.level}
-                          onClick={() => handleTierClick(droid.name, tier.level)}
-                          className={baseClasses}
-                          title={`Marcar ${tier.label}`}
-                        >
-                          <span>{tier.short}</span>
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={tier.level}
+                            onClick={() => handleTierClick(droid.name, tier.level)}
+                            className={baseClasses}
+                            title={`Marcar ${tier.label}`}
+                          >
+                            <span>{tier.short}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
+
+          {/* Sección 2: Droides No Requeridos */}
+          {discardedDroids.length > 0 && (
+            <div className="space-y-2 pt-2 border-t border-institutional-border/40">
+              <h3 className="text-[10px] sm:text-xs uppercase font-extrabold text-red-500/80 tracking-wider px-1 flex items-center gap-1.5">
+                <span>No requeridos</span>
+                <span className="text-[9px] font-mono bg-red-950/30 border border-red-500/20 px-1.5 py-0.2 rounded text-red-400">
+                  {discardedDroids.length}
+                </span>
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+                {discardedDroids.map(droid => {
+                  const hasProgress = droid.achieved > 0;
+
+                  return (
+                    <div 
+                      key={droid.name} 
+                      onClick={() => hasProgress && handleClearDroid(droid.name)}
+                      className={`p-2.5 rounded-lg border flex items-center justify-between transition-all duration-150 select-none ${
+                        hasProgress
+                          ? 'bg-[#1c1214]/60 border-red-900/30 hover:bg-[#25181a]/70 hover:border-red-500/30 cursor-pointer shadow-[inset_0_0_8px_rgba(239,68,68,0.05)]'
+                          : 'bg-[#120e10]/35 border-red-950/10'
+                      }`}
+                      title={hasProgress ? "Haz clic para borrar progreso (marcar como vendido)" : undefined}
+                    >
+                      <h4 className={`text-xs sm:text-sm font-bold truncate flex-1 pr-1.5 ${
+                        hasProgress ? 'text-red-400' : 'text-red-500/35 line-through'
+                      }`}>
+                        {droid.name}
+                      </h4>
+                      {hasProgress && (
+                        <span className="text-[8px] font-bold text-red-400/85 bg-red-950/40 border border-red-900/30 px-1 py-0.2 rounded flex-shrink-0 font-mono">
+                          {tiersConfig[droid.achieved - 1]?.short}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
         </main>
 
         {/* Footer simple de la aplicación */}
         <footer className="text-center py-2 text-[10px] text-slate-600 shrink-0">
-          Los droides se ordenan por urgencia: Prioritarios → Futuros → Completados → Vender.
+          Los droides se ordenan de acuerdo a su prioridad en la meta actual.
         </footer>
 
       </div>
